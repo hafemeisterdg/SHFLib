@@ -25,6 +25,12 @@ typedef char* c_string;
 #define global   static
 #define local    static
 
+#ifdef __cplusplus
+#define os_api extern "C"
+#else
+#define os_api extern
+#endif
+
 #define Kilobyte(x) (x * 1024ULL)
 #define Megabyte(x) (Kilobyte(x) * 1024ULL)
 #define Gigabyte(x) (Megabyte(x) * 1024ULL)
@@ -207,43 +213,43 @@ typedef enum Os_Key_Modifiers {
 // ============================================
 // |        General Purpose Utilities         |
 // ============================================
-internal void* os_mem_alloc(u32 size);
-internal void  os_mem_realloc(void* ptr, u32 new_size);
-internal void  os_mem_free(void* ptr);
-internal void  os_mem_move(void* source, void* destination, u32 size);
-internal void  os_mem_copy(void* source, void* destination, u32 size);
-internal void  os_mem_zero(void* ptr, u32 size);
+os_api void* os_mem_alloc(u32 size);
+os_api void  os_mem_realloc(void* ptr, u32 new_size);
+os_api void  os_mem_free(void* ptr);
+os_api void  os_mem_move(void* source, void* destination, u32 size);
+os_api void  os_mem_copy(void* source, void* destination, u32 size);
+os_api void  os_mem_zero(void* ptr, u32 size);
 
-internal bool   os_lib_load(Os_Lib* lib, c_string library_name);
-internal void   os_lib_unload(Os_Lib* lib);
-internal void*  os_lib_find(Os_Lib* lib, c_string name);
-internal void*  os_lib_get_sys_handle(Os_Lib* lib);
+os_api bool   os_lib_load(Os_Lib* lib, c_string library_name);
+os_api void   os_lib_unload(Os_Lib* lib);
+os_api void*  os_lib_find(Os_Lib* lib, c_string name);
+os_api void*  os_lib_get_sys_handle(Os_Lib* lib);
 
-internal bool  os_socket_create(Os_Socket* sock, Os_Socket_Protocol protocol);
-internal void  os_socket_close(Os_Socket* sock);
-internal i32   os_socket_send(Os_Socket* sock, void* data, u32 data_length);
-internal i32   os_socket_receive(Os_Socket* sock, void* destination, u32 count);
-internal bool  os_socket_connect(Os_Socket* sock, c_string ip, u32 port);
-internal void  os_socket_listen(Os_Socket* sock);
-internal bool  os_socket_bind(Os_Socket* sock, u32 port);
-internal bool  os_socket_accept(Os_Socket* sock, Os_Socket* destination);
-internal void* os_socket_get_sys_handle(Os_Socket* sock); 
+os_api bool  os_socket_create(Os_Socket* sock, Os_Socket_Protocol protocol);
+os_api void  os_socket_close(Os_Socket* sock);
+os_api i32   os_socket_send(Os_Socket* sock, void* data, u32 data_length);
+os_api i32   os_socket_receive(Os_Socket* sock, void* destination, u32 count);
+os_api bool  os_socket_connect(Os_Socket* sock, c_string ip, u32 port);
+os_api void  os_socket_listen(Os_Socket* sock);
+os_api bool  os_socket_bind(Os_Socket* sock, u32 port);
+os_api bool  os_socket_accept(Os_Socket* sock, Os_Socket* destination);
+os_api void* os_socket_get_sys_handle(Os_Socket* sock); 
 
 typedef void (*Os_Window_Key_Callback)(Os_Keycode, Os_Key_Action, Os_Key_Modifiers);
-internal bool     os_window_create(Os_Window* destination, Os_Window_Configuration* config);
-internal void     os_window_destroy(Os_Window* window);
-internal void     os_window_show(Os_Window* window);
-internal void     os_window_hide(Os_Window* window);
-internal void     os_window_poll(Os_Window* window);
-internal bool     os_window_should_close(Os_Window* window);
-internal u32      os_window_get_width(Os_Window* window);
-internal u32      os_window_get_height(Os_Window* window);
-internal void     os_window_resize(Os_Window* window, u32 width, u32 height);
-internal void     os_window_set_position(Os_Window* window, u32 x, u32 y);
-internal c_string os_window_get_title(Os_Window* window);
-internal void     os_window_set_title(Os_Window* window, c_string title);
-internal void     os_window_set_key_callback(Os_Window* window, Os_Window_Key_Callback callback);
-internal void*    os_window_get_sys_handle(Os_Window* window);
+os_api bool     os_window_create(Os_Window* destination, Os_Window_Configuration* config);
+os_api void     os_window_destroy(Os_Window* window);
+os_api void     os_window_show(Os_Window* window);
+os_api void     os_window_hide(Os_Window* window);
+os_api void     os_window_poll(Os_Window* window);
+os_api bool     os_window_should_close(Os_Window* window);
+os_api u32      os_window_get_width(Os_Window* window);
+os_api u32      os_window_get_height(Os_Window* window);
+os_api void     os_window_resize(Os_Window* window, u32 width, u32 height);
+os_api void     os_window_set_position(Os_Window* window, u32 x, u32 y);
+os_api c_string os_window_get_title(Os_Window* window);
+os_api void     os_window_set_title(Os_Window* window, c_string title);
+os_api void     os_window_set_key_callback(Os_Window* window, Os_Window_Key_Callback callback);
+os_api void*    os_window_get_sys_handle(Os_Window* window);
 
 #endif //OS_H
 
@@ -289,27 +295,27 @@ typedef struct Os_Window_Data {
 // |     Windows Specific Implementations     |
 // ============================================
 
-internal void* os_mem_alloc(u32 size) {
+os_api void* os_mem_alloc(u32 size) {
     return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size);
 }
 
-internal void os_mem_realloc(void* ptr, u32 new_size) {
+os_api void os_mem_realloc(void* ptr, u32 new_size) {
     HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr, new_size);
 }
 
-internal void os_mem_free(void* ptr) {
+os_api void os_mem_free(void* ptr) {
     HeapFree(GetProcessHeap(), 0, ptr);
 }
 
-internal void os_mem_move(void* source, void* destination, u32 size) {
+os_api void os_mem_move(void* source, void* destination, u32 size) {
     MoveMemory(destination, source, size);
 }
 
-internal void os_mem_copy(void* source, void* destination, u32 size) {
+os_api void os_mem_copy(void* source, void* destination, u32 size) {
     CopyMemory(destination, source, size);
 }
 
-internal void os_mem_zero(void* ptr, u32 size) {
+os_api void os_mem_zero(void* ptr, u32 size) {
     ZeroMemory(ptr, size);
 }
 
@@ -334,7 +340,7 @@ typedef struct Os_Lib {
     HMODULE win32_lib;
 } Os_Lib;
 
-internal bool os_lib_load(Os_Lib* lib, c_string library_name) {
+os_api bool os_lib_load(Os_Lib* lib, c_string library_name) {
     lib->win32_lib = NULL;
     lib->win32_lib = LoadLibraryA(library_name);
     if(lib->win32_lib == NULL) return false;
@@ -342,15 +348,15 @@ internal bool os_lib_load(Os_Lib* lib, c_string library_name) {
     return true;
 }
 
-internal void os_lib_unload(Os_Lib* lib) {
+os_api void os_lib_unload(Os_Lib* lib) {
     if(lib->win32_lib != NULL) FreeLibrary(lib->win32_lib);
 }
 
-internal void* os_lib_find(Os_Lib* lib, c_string name) {
+os_api void* os_lib_find(Os_Lib* lib, c_string name) {
     return (void*) GetProcAddress(lib->win32_lib, name);
 }
 
-internal void* os_lib_get_sys_handle(Os_Lib* lib) {
+os_api void* os_lib_get_sys_handle(Os_Lib* lib) {
     return (void*) lib->win32_lib;
 }
 
@@ -369,8 +375,8 @@ typedef struct Os_Socket {
     u8     protocol;
 } Os_Socket;
 
-global bool _win32_winsock_initialized = false;
-bool _win32_winsock_init() {
+internal bool _win32_winsock_initialized = false;
+internal bool _win32_winsock_init() {
     WSADATA wsa_data;
     i32 result = WSAStartup(MAKEWORD(2, 2), &wsa_data);
     
@@ -379,7 +385,7 @@ bool _win32_winsock_init() {
     return true;
 }
 
-internal bool os_socket_create(Os_Socket* sock, Os_Socket_Protocol protocol) {
+os_api bool os_socket_create(Os_Socket* sock, Os_Socket_Protocol protocol) {
     if(!_win32_winsock_initialized) {
         if(!_win32_winsock_init()) {
             return false;
@@ -404,15 +410,15 @@ internal bool os_socket_create(Os_Socket* sock, Os_Socket_Protocol protocol) {
     return true;
 }
 
-internal void os_socket_close(Os_Socket* sock) {
+os_api void os_socket_close(Os_Socket* sock) {
     closesocket(sock->win32_socket);
 }
 
-internal i32 os_socket_send(Os_Socket* sock, void* data, u32 data_length) {
+os_api i32 os_socket_send(Os_Socket* sock, void* data, u32 data_length) {
     return send(sock->win32_socket, (const char*) data, data_length, 0);
 }
 
-internal i32 os_socket_receive(Os_Socket* sock, void* destination, u32 count) {
+os_api i32 os_socket_receive(Os_Socket* sock, void* destination, u32 count) {
     i32 received = recv(sock->win32_socket, (char*) destination, count, 0);
     
     if(received == SOCKET_ERROR) return 0;
@@ -421,7 +427,7 @@ internal i32 os_socket_receive(Os_Socket* sock, void* destination, u32 count) {
     
 }
 
-internal bool os_socket_connect(Os_Socket* sock, c_string ip, u32 port) {
+os_api bool os_socket_connect(Os_Socket* sock, c_string ip, u32 port) {
     struct sockaddr_in connection_address;
     switch(sock->protocol) {
         case SOCKET_PROTO_TCP: {
@@ -441,11 +447,11 @@ internal bool os_socket_connect(Os_Socket* sock, c_string ip, u32 port) {
     return true;
 }
 
-internal void os_socket_listen(Os_Socket* sock) {
+os_api void os_socket_listen(Os_Socket* sock) {
     i32 listen_result = listen(sock->win32_socket, SOMAXCONN);
 }
 
-internal bool os_socket_bind(Os_Socket* sock, u32 port) {
+os_api bool os_socket_bind(Os_Socket* sock, u32 port) {
     struct sockaddr_in bind_address;
     switch(sock->protocol) {
         case SOCKET_PROTO_TCP: {
@@ -466,7 +472,7 @@ internal bool os_socket_bind(Os_Socket* sock, u32 port) {
     return true;
 }
 
-internal bool os_socket_accept(Os_Socket* sock, Os_Socket* destination) {
+os_api bool os_socket_accept(Os_Socket* sock, Os_Socket* destination) {
     SOCKET win32_connected_socket = accept(sock->win32_socket, 0, 0);
     
     if(win32_connected_socket == INVALID_SOCKET) return false;
@@ -477,7 +483,7 @@ internal bool os_socket_accept(Os_Socket* sock, Os_Socket* destination) {
     return true;
 }
 
-internal void* os_socket_get_sys_handle(Os_Socket* sock) {
+os_api void* os_socket_get_sys_handle(Os_Socket* sock) {
     return (void*) sock->win32_socket;
 }
 // ***************************
@@ -506,7 +512,7 @@ typedef struct _Win32_Keypress_Lparam_Data {
     u8  transition_state;
 } _Win32_Keypress_Lparam_Data;
 
-_Win32_Keypress_Lparam_Data _win32_breakdown_keypress_lparam(LPARAM lparam) {
+internal _Win32_Keypress_Lparam_Data _win32_breakdown_keypress_lparam(LPARAM lparam) {
     _Win32_Keypress_Lparam_Data data;
     
     data.repeat_count     = unpack_bits_from_offset(lparam, 16, 0);
@@ -604,7 +610,7 @@ internal Os_Keycode _win32_convert_keycode(WPARAM wparam) {
     }
 }
 
-void _win32_default_window_key_callback(Os_Keycode keycode, Os_Key_Action action, Os_Key_Modifiers mods) {
+internal void _win32_default_window_key_callback(Os_Keycode keycode, Os_Key_Action action, Os_Key_Modifiers mods) {
     
 }
 
@@ -643,8 +649,8 @@ LRESULT CALLBACK _win32_platform_window_callback(HWND hwnd, u32 msg, WPARAM wpar
     return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-global bool _win32_is_window_class_registered = false;
-bool _win32_register_window_class() {
+internal bool _win32_is_window_class_registered = false;
+internal bool _win32_register_window_class() {
     WNDCLASSEXA window_class = {};
     window_class.cbSize        = sizeof(window_class);
     window_class.cbClsExtra    = 0;
@@ -664,7 +670,7 @@ bool _win32_register_window_class() {
     return _win32_is_window_class_registered;
 }
 
-internal bool os_window_create(Os_Window* destination, Os_Window_Configuration* config) {
+os_api bool os_window_create(Os_Window* destination, Os_Window_Configuration* config) {
     if(!_win32_is_window_class_registered && !_win32_register_window_class()) return false;
     
     destination->win32_window_handle = CreateWindowA("win32_window_class", config->title, WS_OVERLAPPEDWINDOW,
@@ -683,19 +689,19 @@ internal bool os_window_create(Os_Window* destination, Os_Window_Configuration* 
     return true;
 }
 
-internal void os_window_destroy(Os_Window* window) {
+os_api void os_window_destroy(Os_Window* window) {
     DestroyWindow(window->win32_window_handle);
 }
 
-internal void os_window_show(Os_Window* window) {
+os_api void os_window_show(Os_Window* window) {
     ShowWindow(window->win32_window_handle, SW_SHOW);
 }
 
-internal void os_window_hide(Os_Window* window) {
+os_api void os_window_hide(Os_Window* window) {
     ShowWindow(window->win32_window_handle, SW_HIDE);
 }
 
-internal void os_window_poll(Os_Window* window) {
+os_api void os_window_poll(Os_Window* window) {
     MSG e;
     while(PeekMessageA(&e, window->win32_window_handle, 0, 0, PM_REMOVE)) {
         TranslateMessage(&e);
@@ -703,19 +709,19 @@ internal void os_window_poll(Os_Window* window) {
     }
 }
 
-internal bool os_window_should_close(Os_Window* window) {
+os_api bool os_window_should_close(Os_Window* window) {
     return window->data.should_close;
 }
 
-internal u32 os_window_get_width(Os_Window* window) {
+os_api u32 os_window_get_width(Os_Window* window) {
     return window->data.width;
 }
 
-internal u32 os_window_get_height(Os_Window* window) {
+os_api u32 os_window_get_height(Os_Window* window) {
     return window->data.height;
 }
 
-internal void os_window_resize(Os_Window* window, u32 width, u32 height) {
+os_api void os_window_resize(Os_Window* window, u32 width, u32 height) {
     RECT window_rect;
     SetWindowPos(window->win32_window_handle, HWND_TOP, 0, 0, width, height, SWP_NOMOVE);
     
@@ -723,24 +729,24 @@ internal void os_window_resize(Os_Window* window, u32 width, u32 height) {
     window->data.height = height;
 }
 
-internal void os_window_set_position(Os_Window* window, u32 x, u32 y) {
+os_api void os_window_set_position(Os_Window* window, u32 x, u32 y) {
     SetWindowPos(window->win32_window_handle, HWND_TOP, x, y, x + window->data.width, y + window->data.height, 0);
 }
 
-internal c_string os_window_get_title(Os_Window* window) {
+os_api c_string os_window_get_title(Os_Window* window) {
     return window->data.title;
 }
 
-internal void os_window_set_title(Os_Window* window, c_string title) {
+os_api void os_window_set_title(Os_Window* window, c_string title) {
     SetWindowTextA(window->win32_window_handle, title);
     window->data.title = title;
 }
 
-internal void os_window_set_key_callback(Os_Window* window, Os_Window_Key_Callback callback) {
+os_api void os_window_set_key_callback(Os_Window* window, Os_Window_Key_Callback callback) {
     window->key_callback = callback;
 }
 
-internal void* os_window_get_sys_handle(Os_Window* window) {
+os_api void* os_window_get_sys_handle(Os_Window* window) {
     return (void*) window->win32_window_handle;
 }
 
@@ -819,7 +825,7 @@ typedef struct Os_Window {
     Atom x11_delete_message;
 } Os_Window;
 
-internal bool os_window_create(Os_Window* destination, Os_Window_Configuration* config) {
+os_api bool os_window_create(Os_Window* destination, Os_Window_Configuration* config) {
     destination->x11_display = XOpenDisplay(NULL);
     
     if(destination->x11_display == NULL) return false;
@@ -843,21 +849,21 @@ internal bool os_window_create(Os_Window* destination, Os_Window_Configuration* 
     os_window_resize(destination, config->width, config->height);
 }
 
-internal void os_window_destroy(Os_Window* window) {
+os_api void os_window_destroy(Os_Window* window) {
     XDestroyWindow(window->x11_display, window->x11_window);
     XCloseDisplay(window->x11_display);
 }
 
-internal void os_window_show(Os_Window* window) {
+os_api void os_window_show(Os_Window* window) {
     XClearWindow(window->x11_display, window->x11_window);
     XMapWindow(window->x11_display, window->x11_window);
 }
 
-internal void os_window_hide(Os_Window* window) {
+os_api void os_window_hide(Os_Window* window) {
     
 }
 
-internal void os_window_poll(Os_Window* window) {
+os_api void os_window_poll(Os_Window* window) {
     XEvent e;
     
     while(XPending(window->x11_display) > 0) {
@@ -873,19 +879,19 @@ internal void os_window_poll(Os_Window* window) {
     }
 }
 
-internal bool os_window_should_close(Os_Window* window) {
+os_api bool os_window_should_close(Os_Window* window) {
     return window->data.should_close;
 }
 
-internal u32 os_window_get_width(Os_Window* window) {
+os_api u32 os_window_get_width(Os_Window* window) {
     return window->data.width;
 }
 
-internal u32 os_window_get_height(Os_Window* window) {
+os_api u32 os_window_get_height(Os_Window* window) {
     return window->data.height;
 }
 
-internal void os_window_resize(Os_Window* window, u32 width, u32 height) {
+os_api void os_window_resize(Os_Window* window, u32 width, u32 height) {
     u32 resize_mask = CWWidth | CWHeight;
     XWindowChanges resize_values;
     resize_values.width  = width;
@@ -896,21 +902,21 @@ internal void os_window_resize(Os_Window* window, u32 width, u32 height) {
     window->data.height = height;
 }
 
-internal void os_window_set_position(Os_Window* window, u32 x, u32 y) {
+os_api void os_window_set_position(Os_Window* window, u32 x, u32 y) {
     
 }
 
-internal c_string os_window_get_title(Os_Window* window) {
+os_api c_string os_window_get_title(Os_Window* window) {
     return window->data.title;
 }
 
-internal void os_window_set_title(Os_Window* window, c_string title) {
+os_api void os_window_set_title(Os_Window* window, c_string title) {
     XStoreName(window->x11_display, window->x11_window, title);
     
     window->data.title = title;
 }
 
-internal void* os_window_get_sys_handle(Os_Window* window) {
+os_api void* os_window_get_sys_handle(Os_Window* window) {
     return (void*) window->x11_window;
 }
 
