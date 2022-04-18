@@ -3,7 +3,10 @@
 #ifndef TYPE_DEFINITIONS_H
 #define TYPE_DEFINITIONS_H
 
-#include <stdbool.h>
+// TODO(Cody): In the near future not relying on any 
+//             c std lib would be ideal. This should be
+//             pure implementations per system to maximize
+//             impact. 
 #include <stdint.h>
 
 typedef uint64_t u64;
@@ -20,6 +23,10 @@ typedef double f64;
 typedef float  f32;
 
 typedef char* c_string;
+
+typedef u8 bool;
+#define true  1
+#define false 0
 
 #define internal static
 #define global   static
@@ -60,6 +67,18 @@ global u64 __get_nth_bits_from_offset(u64 number, u8 num_bits, u8 offset) {
 
 typedef struct Os_Cmd     Os_Cmd;
 typedef struct Os_File    Os_File;
+typedef enum Os_File_Mode {
+    File_Mode_Read_Only,
+    File_Mode_Write_Only,
+    File_Mode_Read_Write,
+} Os_File_Mode;
+
+typedef enum Os_File_Seek_Mode {
+    File_Seek_Start,
+    File_Seek_Current,
+    File_Seek_End,
+} Os_File_Seek_Mode;
+
 typedef struct Os_Lib     Os_Lib;     // Somewhat implemented (Win32)
 typedef struct Os_Proc    Os_Proc;
 typedef struct Os_Thread  Os_Thread;
@@ -220,11 +239,29 @@ os_api void  os_mem_move(void* source, void* destination, u32 size);
 os_api void  os_mem_copy(void* source, void* destination, u32 size);
 os_api void  os_mem_zero(void* ptr, u32 size);
 
+// ============================================
+// |         File API Functions               |
+// ============================================
+os_api bool  os_file_create(c_string file_location, bool overwrite_existing);
+os_api bool  os_file_open(c_string file_location, Os_File_Mode mode, Os_File* output);
+os_api void  os_file_close(Os_File* file);
+os_api void  os_file_delete(c_string file_location);
+os_api void  os_file_read_size(Os_File* file, u32 size, u8* output);
+os_api void  os_file_write_size(Os_File* file, u32 size, u8* input);
+os_api void  os_file_seek(Os_File* file, u32 position, Os_File_Seek_Mode mode);
+os_api void* os_file_get_sys_handle(Os_File* file);
+
+// ============================================
+// |         Library API Functions            |
+// ============================================
 os_api bool   os_lib_load(Os_Lib* lib, c_string library_name);
 os_api void   os_lib_unload(Os_Lib* lib);
 os_api void*  os_lib_find(Os_Lib* lib, c_string name);
 os_api void*  os_lib_get_sys_handle(Os_Lib* lib);
 
+// ============================================
+// |         Socket API Functions             |
+// ============================================
 os_api bool  os_socket_create(Os_Socket* sock, Os_Socket_Protocol protocol);
 os_api void  os_socket_close(Os_Socket* sock);
 os_api i32   os_socket_send(Os_Socket* sock, void* data, u32 data_length);
@@ -235,6 +272,9 @@ os_api bool  os_socket_bind(Os_Socket* sock, u32 port);
 os_api bool  os_socket_accept(Os_Socket* sock, Os_Socket* destination);
 os_api void* os_socket_get_sys_handle(Os_Socket* sock); 
 
+// ============================================
+// |         Window API Functions             |
+// ============================================
 typedef void (*Os_Window_Key_Callback)(Os_Keycode, Os_Key_Action, Os_Key_Modifiers);
 os_api bool     os_window_create(Os_Window* destination, Os_Window_Configuration* config);
 os_api void     os_window_destroy(Os_Window* window);
@@ -280,6 +320,13 @@ os_api void*    os_window_get_sys_handle(Os_Window* window);
 // ============================================
 // |     Platform Agnostic Implementations    |
 // ============================================
+typedef struct Os_File_Data {
+    c_string     file_location;
+    u32          size;
+    Os_File_Mode mode;
+    bool         open;
+} Os_File_Data;
+
 typedef struct Os_Window_Data {
     c_string title;
     u32      width;
@@ -329,9 +376,101 @@ typedef struct Os_Cmd {
 // ***************************
 // *          Files          *
 // ***************************
+
 typedef struct Os_File {
+    HFILE win32_file_handle;
     
+    Os_File_Data data;
 } Os_File;
+
+os_api bool os_file_create(c_string file_location, bool overwrite_existing) {
+    i32 file_flags;
+    
+    if(overwrite_existing) file_flags = CREATE_ALWAYS;
+    else                   file_flags = CREATE_NEW;
+    
+    HANDLE file = CreateFileA(file_location, GENERIC_READ | GENERIC_WRITE, 0, NULL, file_flags, FILE_ATTRIBUTE_NORMAL, NULL);
+    if(file == INVALID_HANDLE_VALUE) return false;
+    
+    CloseHandle(file);
+    
+    return true;
+}
+
+os_api bool os_file_open(c_string file_location, Os_File_Mode mode, Os_File* output) {
+    OFSTRUCT win32_open_file_data;
+    HFILE    win32_file_handle;
+    
+    switch(mode) {
+        case File_Mode_Read_Only: {
+            win32_file_handle = OpenFile(file_location, &win32_open_file_data, OF_READ);
+        } break;
+        
+        case File_Mode_Write_Only: {
+            win32_file_handle = OpenFile(file_location, &win32_open_file_data, OF_WRITE);
+        } break;
+        
+        case File_Mode_Read_Write: {
+            win32_file_handle = OpenFile(file_location, &win32_open_file_data, OF_READWRITE);
+        } break;
+    }
+    
+    if(win32_file_handle == HFILE_ERROR) return false;
+    
+    output->win32_file_handle  = win32_file_handle;
+    output->data.file_location = file_location;
+    output->data.size          = GetFileSize(output->win32_file_handle, NULL);
+    output->data.open          = true;
+    
+    return true;
+}
+
+os_api void os_file_close(Os_File* file) {
+    if(file->data.open) CloseHandle(file->win32_file_handle);
+    file->data.open = false;
+}
+
+os_api void os_file_delete(c_string file_location) {
+    DeleteFile(file_location);
+}
+
+os_api void os_file_read_size(Os_File* file, u32 size, u8* output) {
+    if(!file->win32_file_handle || !file->data.open) return;
+    
+    ReadFile(file->win32_file_handle, (LPVOID) output, size, NULL, NULL);
+}
+
+os_api void os_file_write_size(Os_File* file, u32 size, u8* input) {
+    if(!file->win32_file_handle || !file->data.open) return;
+    
+    WriteFile(file->win32_file_handle, input, size, NULL, NULL);
+}
+
+os_api void os_file_seek(Os_File* file, u32 position, Os_File_Seek_Mode mode) {
+    if(!file->win32_file_handle || !file->data.open) return;
+    
+    LARGE_INTEGER windows_mega_memes;
+    windows_mega_memes.u.LowPart  = position & 0xFFFFFFFF;
+    windows_mega_memes.u.HighPart = position >> 32;
+    
+    switch(mode) {
+        case File_Seek_Start: {
+            SetFilePointerEx(file->win32_file_handle, windows_mega_memes, NULL, FILE_BEGIN);
+        } break;
+        
+        case File_Seek_Current: {
+            SetFilePointerEx(file->win32_file_handle, windows_mega_memes, NULL, FILE_CURRENT);
+        } break;
+        
+        case File_Seek_End: {
+            SetFilePointerEx(file->win32_file_handle, windows_mega_memes, NULL, FILE_END);
+        } break;
+    }
+}
+
+os_api void* os_file_get_sys_handle(Os_File* file) {
+    return (void*) file->win32_file_handle;
+}
 
 // ***************************
 // *         Libraries       *
@@ -614,6 +753,7 @@ internal void _win32_default_window_key_callback(Os_Keycode keycode, Os_Key_Acti
     
 }
 
+// TODO(Cody): Lots to implement here still, but this is a working start.
 LRESULT CALLBACK _win32_platform_window_callback(HWND hwnd, u32 msg, WPARAM wparam, LPARAM lparam) {
     Os_Window* window    = (Os_Window*) GetPropA(hwnd, "Os_Window");
     
@@ -657,15 +797,15 @@ internal bool _win32_register_window_class() {
     window_class.cbWndExtra    = 0;
     // TODO(Cody):              At some point we should probably setup an abstracted flag set
     //                          that can translate into these for user control
-	window_class.style         = CS_OWNDC | CS_VREDRAW | CS_HREDRAW | CS_GLOBALCLASS;
-	window_class.lpfnWndProc   = _win32_platform_window_callback;
-	window_class.hInstance     = GetModuleHandle(0);
+    window_class.style         = CS_OWNDC | CS_VREDRAW | CS_HREDRAW | CS_GLOBALCLASS;
+    window_class.lpfnWndProc   = _win32_platform_window_callback;
+    window_class.hInstance     = GetModuleHandle(0);
     window_class.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
     window_class.hCursor       = LoadCursor(NULL, IDC_ARROW);
-	window_class.lpszClassName = "win32_window_class";
+    window_class.lpszClassName = "win32_window_class";
     
     _win32_is_window_class_registered = true;
-	if(RegisterClassExA(&window_class) == 0) _win32_is_window_class_registered = false;
+    if(RegisterClassExA(&window_class) == 0) _win32_is_window_class_registered = false;
     
     return _win32_is_window_class_registered;
 }
