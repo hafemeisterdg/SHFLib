@@ -30,29 +30,189 @@ typedef char* c_string;
 #define Gigabyte(x) (Megabyte(x) * 1024ULL)
 #define Terabyte(x) (Gigabyte(x) * 1024ULL)
 
+#define bit_set(a,b) ((a) |= (1ULL<<(b)))
+#define bit_clear(a,b) ((a) &= ~(1ULL<<(b)))
+#define bit_flip(a,b) ((a) ^= (1ULL<<(b)))
+#define bit_check(a,b) (!!((a) & (1ULL<<(b)))) 
+
+#define bitmask_set(x,y) ((x) |= (y))
+#define bitmask_clear(x,y) ((x) &= (~(y)))
+#define bitmask_flip(x,y) ((x) ^= (y))
+#define bitmask_check_all(x,y) (!(~(x) & (y)))
+#define bitmask_check_any(x,y) ((x) & (y))
+
+global u64 __get_nth_bits_from_offset(u64 number, u8 num_bits, u8 offset) {
+    return (number >> offset) & ((1 << num_bits) - 1);
+} 
+
+#define unpack_bits_from_offset(num, num_bits, offset) __get_nth_bits_from_offset(num, num_bits, offset)
+
 #endif //TYPE_DEFINITIONS_H
 
 #ifndef OS_H
 #define OS_H
 
-typedef struct Os_Cmd    Os_Cmd;
-typedef struct Os_File   Os_File;
-typedef struct Os_Lib    Os_Lib;     // Mostly implemented
-typedef struct Os_Proc   Os_Proc;
-typedef struct Os_Socket Os_Socket;  // Mostly implemented
-typedef struct Os_Thread Os_Thread;
-typedef struct Os_Window Os_Window;  // Mostly implemented
-
+typedef struct Os_Cmd     Os_Cmd;
+typedef struct Os_File    Os_File;
+typedef struct Os_Lib     Os_Lib;     // Somewhat implemented (Win32)
+typedef struct Os_Proc    Os_Proc;
+typedef struct Os_Thread  Os_Thread;
+typedef struct Os_Socket  Os_Socket;  // Somewhat implemented (Win32)
 typedef enum Os_Socket_Protocol {
     SOCKET_PROTO_TCP,
     SOCKET_PROTO_UDP
 } Os_Socket_Protocol;
 
+typedef struct Os_Window  Os_Window;  // Somewhat implemented (Win32, Linux_X11)
 typedef struct Os_Window_Configuration {
     c_string title;
     u32      width;
     u32      height;
 } Os_Window_Configuration;
+
+// ============================================
+// |              Keyboard Keys               |
+// ============================================
+// NOTE(Cody): This currently assumes a "full" keyboard is a standard US QWERTY
+// TODO(Cody): Make  this not static to support other language keyboards. 
+//             This adventure can be taken at a much later date.
+typedef enum Os_Keycode {
+    Os_Keycode_Undefined = 0,
+    
+    // Alphabetical Keys
+    Os_Keycode_A,
+    Os_Keycode_B,
+    Os_Keycode_C,
+    Os_Keycode_D,
+    Os_Keycode_E,
+    Os_Keycode_F,
+    Os_Keycode_G,
+    Os_Keycode_H,
+    Os_Keycode_I,
+    Os_Keycode_J,
+    Os_Keycode_K,
+    Os_Keycode_L,
+    Os_Keycode_M,
+    Os_Keycode_N,
+    Os_Keycode_O,
+    Os_Keycode_P,
+    Os_Keycode_Q,
+    Os_Keycode_R,
+    Os_Keycode_S,
+    Os_Keycode_T,
+    Os_Keycode_U,
+    Os_Keycode_V,
+    Os_Keycode_W,
+    Os_Keycode_X,
+    Os_Keycode_Y,
+    Os_Keycode_Z,
+    
+    // Numerical Keys
+    Os_Keycode_0,
+    Os_Keycode_1,
+    Os_Keycode_2,
+    Os_Keycode_3,
+    Os_Keycode_4,
+    Os_Keycode_5,
+    Os_Keycode_6,
+    Os_Keycode_7,
+    Os_Keycode_8,
+    Os_Keycode_9,
+    Os_Keycode_Minus,
+    Os_Keycode_Equal,
+    
+    // Function Keys
+    Os_Keycode_F1,
+    Os_Keycode_F2,
+    Os_Keycode_F3,
+    Os_Keycode_F4,
+    Os_Keycode_F5,
+    Os_Keycode_F6,
+    Os_Keycode_F7,
+    Os_Keycode_F8,
+    Os_Keycode_F9,
+    Os_Keycode_F10,
+    Os_Keycode_F11,
+    Os_Keycode_F12,
+    
+    // Modifier Keys
+    Os_Keycode_Alt_Left,
+    Os_Keycode_Alt_Right,
+    Os_Keycode_Ctrl_Left,
+    Os_Keycode_Ctrl_Right,
+    Os_Keycode_Shift_Left,
+    Os_Keycode_Shift_Right,
+    
+    // Punctuation Keys
+    Os_Keycode_Apostrophe,
+    Os_Keycode_Comma,
+    Os_Keycode_Period,
+    Os_Keycode_Slash_Fwd,
+    Os_Keycode_Slash_Back,
+    Os_Keycode_Semi_Colon,
+    Os_Keycode_Square_Left,
+    Os_Keycode_Square_Right,
+    Os_Keycode_Tilde,
+    
+    // Numpad Keys
+    Os_Keycode_Num_0,
+    Os_Keycode_Num_1,
+    Os_Keycode_Num_2,
+    Os_Keycode_Num_3,
+    Os_Keycode_Num_4,
+    Os_Keycode_Num_5,
+    Os_Keycode_Num_6,
+    Os_Keycode_Num_7,
+    Os_Keycode_Num_8,
+    Os_Keycode_Num_9,
+    Os_Keycode_Num_Slash,
+    Os_Keycode_Num_Star,
+    Os_Keycode_Num_Minus,
+    Os_Keycode_Num_Plus,
+    Os_Keycode_Num_Enter,
+    Os_Keycode_Num_Period,
+    
+    // Utility Keys
+    Os_Keycode_Arrow_Down,
+    Os_Keycode_Arrow_Left,
+    Os_Keycode_Arrow_Right,
+    Os_Keycode_Arrow_Up,
+    Os_Keycode_Backspace,
+    Os_Keycode_Caps_Lock,
+    Os_Keycode_Delete,
+    Os_Keycode_End,
+    Os_Keycode_Enter,
+    Os_Keycode_Escape,
+    Os_Keycode_Home,
+    Os_Keycode_Insert,
+    Os_Keycode_Page_Down,
+    Os_Keycode_Page_Up,
+    Os_Keycode_Pause,
+    Os_Keycode_Print_Screen,
+    Os_Keycode_Scroll_Lock,
+    Os_Keycode_Super,
+    Os_Keycode_Tab,
+} Os_Keycode;
+
+typedef enum Os_Key_Action {
+    Os_Keyaction_Undefined = 0,
+    Os_Keyaction_Key_Down,
+    Os_Keyaction_Key_Up,
+} Os_Key_Action;
+
+typedef enum Os_Key_Modifiers {
+    Os_Keymods_Undefined = 0,
+} Os_Key_Modifiers;
+
+// ============================================
+// |        General Purpose Utilities         |
+// ============================================
+internal void* os_mem_alloc(u32 size);
+internal void  os_mem_realloc(void* ptr, u32 new_size);
+internal void  os_mem_free(void* ptr);
+internal void  os_mem_move(void* source, void* destination, u32 size);
+internal void  os_mem_copy(void* source, void* destination, u32 size);
+internal void  os_mem_zero(void* ptr, u32 size);
 
 internal bool   os_lib_load(Os_Lib* lib, c_string library_name);
 internal void   os_lib_unload(Os_Lib* lib);
@@ -69,17 +229,21 @@ internal bool  os_socket_bind(Os_Socket* sock, u32 port);
 internal bool  os_socket_accept(Os_Socket* sock, Os_Socket* destination);
 internal void* os_socket_get_sys_handle(Os_Socket* sock); 
 
-internal bool  os_window_create(Os_Window* destination, Os_Window_Configuration* config);
-internal void  os_window_destroy(Os_Window* window);
-internal void  os_window_show(Os_Window* window);
-internal void  os_window_hide(Os_Window* window);
-internal void  os_window_poll(Os_Window* window);
-internal bool  os_window_should_close(Os_Window* window);
-internal u32   os_window_get_width(Os_Window* window);
-internal u32   os_window_get_height(Os_Window* window);
-internal void  os_window_resize(Os_Window* window, u32 width, u32 height);
-internal void  os_window_set_title(Os_Window* window, c_string title);
-internal void* os_window_get_sys_handle(Os_Window* window);
+typedef void (*Os_Window_Key_Callback)(Os_Keycode, Os_Key_Action, Os_Key_Modifiers);
+internal bool     os_window_create(Os_Window* destination, Os_Window_Configuration* config);
+internal void     os_window_destroy(Os_Window* window);
+internal void     os_window_show(Os_Window* window);
+internal void     os_window_hide(Os_Window* window);
+internal void     os_window_poll(Os_Window* window);
+internal bool     os_window_should_close(Os_Window* window);
+internal u32      os_window_get_width(Os_Window* window);
+internal u32      os_window_get_height(Os_Window* window);
+internal void     os_window_resize(Os_Window* window, u32 width, u32 height);
+internal void     os_window_set_position(Os_Window* window, u32 x, u32 y);
+internal c_string os_window_get_title(Os_Window* window);
+internal void     os_window_set_title(Os_Window* window, c_string title);
+internal void     os_window_set_key_callback(Os_Window* window, Os_Window_Key_Callback callback);
+internal void*    os_window_get_sys_handle(Os_Window* window);
 
 #endif //OS_H
 
@@ -97,11 +261,25 @@ internal void* os_window_get_sys_handle(Os_Window* window);
 
 #elif defined(OS_Linux)
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/keysymdef.h>
+
 #elif defined(OS_Android)
 
 #elif defined(OS_Ios)
 
 #endif // End Platform Specific Includes
+
+// ============================================
+// |     Platform Agnostic Implementations    |
+// ============================================
+typedef struct Os_Window_Data {
+    c_string title;
+    u32      width;
+    u32      height;
+    bool     should_close;
+} Os_Window_Data;
 
 // ============================================
 // |     Platform Specific Implementations    |
@@ -111,8 +289,29 @@ internal void* os_window_get_sys_handle(Os_Window* window);
 // |     Windows Specific Implementations     |
 // ============================================
 
-#include <stdio.h>
-#include <stdlib.h>
+internal void* os_mem_alloc(u32 size) {
+    return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size);
+}
+
+internal void os_mem_realloc(void* ptr, u32 new_size) {
+    HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr, new_size);
+}
+
+internal void os_mem_free(void* ptr) {
+    HeapFree(GetProcessHeap(), 0, ptr);
+}
+
+internal void os_mem_move(void* source, void* destination, u32 size) {
+    MoveMemory(destination, source, size);
+}
+
+internal void os_mem_copy(void* source, void* destination, u32 size) {
+    CopyMemory(destination, source, size);
+}
+
+internal void os_mem_zero(void* ptr, u32 size) {
+    ZeroMemory(ptr, size);
+}
 
 // ***************************
 // *         Cmd Line        *
@@ -138,11 +337,7 @@ typedef struct Os_Lib {
 internal bool os_lib_load(Os_Lib* lib, c_string library_name) {
     lib->win32_lib = NULL;
     lib->win32_lib = LoadLibraryA(library_name);
-    if(lib->win32_lib == NULL) {
-        printf("Os: [Error] - Failed to load library '%s' \n", library_name);
-        
-        return false;
-    }
+    if(lib->win32_lib == NULL) return false;
     
     return true;
 }
@@ -158,7 +353,6 @@ internal void* os_lib_find(Os_Lib* lib, c_string name) {
 internal void* os_lib_get_sys_handle(Os_Lib* lib) {
     return (void*) lib->win32_lib;
 }
-
 
 // ***************************
 // *        Processes        *
@@ -180,11 +374,7 @@ bool _win32_winsock_init() {
     WSADATA wsa_data;
     i32 result = WSAStartup(MAKEWORD(2, 2), &wsa_data);
     
-    if(result != 0) {
-        printf("Winsock initialization failed. \n");
-        
-        return false;
-    }
+    if(result != 0) return false;
     
     return true;
 }
@@ -192,7 +382,7 @@ bool _win32_winsock_init() {
 internal bool os_socket_create(Os_Socket* sock, Os_Socket_Protocol protocol) {
     if(!_win32_winsock_initialized) {
         if(!_win32_winsock_init()) {
-            printf("Winsock init failed \n");
+            return false;
         } else {
             _win32_winsock_initialized = true;
         }
@@ -209,11 +399,7 @@ internal bool os_socket_create(Os_Socket* sock, Os_Socket_Protocol protocol) {
         } break;
     }
     
-    if(sock->win32_socket == INVALID_SOCKET) {
-        printf("Socket creation failed. /n");
-        
-        return false;
-    }
+    if(sock->win32_socket == INVALID_SOCKET) return false;
     
     return true;
 }
@@ -250,22 +436,13 @@ internal bool os_socket_connect(Os_Socket* sock, c_string ip, u32 port) {
     }
     
     i32 connection_result = connect(sock->win32_socket, (SOCKADDR*) &connection_address, sizeof(connection_address));
-    if(connection_result == SOCKET_ERROR) {
-        printf("Failed to connect sock \n");
-        
-        return false;
-    }
+    if(connection_result == SOCKET_ERROR) return false;
     
     return true;
 }
 
 internal void os_socket_listen(Os_Socket* sock) {
     i32 listen_result = listen(sock->win32_socket, SOMAXCONN);
-    if(listen_result == SOCKET_ERROR) {
-        printf("Socket failed to listen! \n");
-    } else {
-        printf("TCP Socket now listening... \n");
-    }
 }
 
 internal bool os_socket_bind(Os_Socket* sock, u32 port) {
@@ -277,11 +454,8 @@ internal bool os_socket_bind(Os_Socket* sock, u32 port) {
             bind_address.sin_port        = htons(port);
             
             i32 bind_result = bind(sock->win32_socket, (SOCKADDR*) &bind_address, sizeof(bind_address));
-            if(bind_result == SOCKET_ERROR) {
-                printf("Failed to bind sock \n");
-                
-                return false;
-            }
+            
+            if(bind_result == SOCKET_ERROR) return false;
         } break;
         
         case SOCKET_PROTO_UDP: {
@@ -319,16 +493,150 @@ typedef struct Os_Thread {
 typedef struct Os_Window {
     HWND win32_window_handle;
     
-    u32  width;
-    u32  height;
-    bool should_close;
+    Os_Window_Data data;
+    Os_Window_Key_Callback key_callback;
 } Os_Window;
 
+typedef struct _Win32_Keypress_Lparam_Data {
+    u16 repeat_count;
+    u8  scan_code;
+    u8  extended_key;
+    u8  context_code;
+    u8  previous_state;
+    u8  transition_state;
+} _Win32_Keypress_Lparam_Data;
+
+_Win32_Keypress_Lparam_Data _win32_breakdown_keypress_lparam(LPARAM lparam) {
+    _Win32_Keypress_Lparam_Data data;
+    
+    data.repeat_count     = unpack_bits_from_offset(lparam, 16, 0);
+    data.scan_code        = unpack_bits_from_offset(lparam, 8, 16);
+    data.extended_key     = unpack_bits_from_offset(lparam, 1, 24);
+    data.context_code     = unpack_bits_from_offset(lparam, 1, 29);
+    data.previous_state   = unpack_bits_from_offset(lparam, 1, 30);
+    data.transition_state = unpack_bits_from_offset(lparam, 1, 31);
+    
+    return data;
+}
+
+internal Os_Keycode _win32_convert_keycode(WPARAM wparam) {
+    switch(wparam) {
+        
+        // Alphabetical Keys
+        case 0x41: return Os_Keycode_A;
+        case 0x42: return Os_Keycode_B;
+        case 0x43: return Os_Keycode_C;
+        case 0x44: return Os_Keycode_D;
+        case 0x45: return Os_Keycode_E;
+        case 0x46: return Os_Keycode_F;
+        case 0x47: return Os_Keycode_G;
+        case 0x48: return Os_Keycode_H;
+        case 0x49: return Os_Keycode_I;
+        case 0x4A: return Os_Keycode_J;
+        case 0x4B: return Os_Keycode_K;
+        case 0x4C: return Os_Keycode_L;
+        case 0x4D: return Os_Keycode_M;
+        case 0x4E: return Os_Keycode_N;
+        case 0x4F: return Os_Keycode_O;
+        case 0x50: return Os_Keycode_P;
+        case 0x51: return Os_Keycode_Q;
+        case 0x52: return Os_Keycode_R;
+        case 0x53: return Os_Keycode_S;
+        case 0x54: return Os_Keycode_T;
+        case 0x55: return Os_Keycode_U;
+        case 0x56: return Os_Keycode_V;
+        case 0x57: return Os_Keycode_W;
+        case 0x58: return Os_Keycode_X;
+        case 0x59: return Os_Keycode_Y;
+        case 0x5A: return Os_Keycode_Z;
+        
+        // Numerical Keys
+        case 0x30: return Os_Keycode_0;
+        case 0x31: return Os_Keycode_1;
+        case 0x32: return Os_Keycode_2;
+        case 0x33: return Os_Keycode_3;
+        case 0x34: return Os_Keycode_4;
+        case 0x35: return Os_Keycode_5;
+        case 0x36: return Os_Keycode_6;
+        case 0x37: return Os_Keycode_7;
+        case 0x38: return Os_Keycode_8;
+        case 0x39: return Os_Keycode_9;
+        case 0xBD: return Os_Keycode_Minus;
+        case 0xBB: return Os_Keycode_Equal;
+        
+        // Function Keys
+        case 0x70: return Os_Keycode_F1;
+        case 0x71: return Os_Keycode_F2;
+        case 0x72: return Os_Keycode_F3;
+        case 0x73: return Os_Keycode_F4;
+        case 0x74: return Os_Keycode_F5;
+        case 0x75: return Os_Keycode_F6;
+        case 0x76: return Os_Keycode_F7;
+        case 0x77: return Os_Keycode_F8;
+        case 0x78: return Os_Keycode_F9;
+        case 0x79: return Os_Keycode_F10;
+        case 0x7A: return Os_Keycode_F11;
+        case 0x7B: return Os_Keycode_F12;
+        
+        // Modifier Keys
+        
+        // Punctuation Keys
+        
+        // Numpad Keys
+        case 0x60: return Os_Keycode_Num_0;
+        case 0x61: return Os_Keycode_Num_1;
+        case 0x62: return Os_Keycode_Num_2;
+        case 0x63: return Os_Keycode_Num_3;
+        case 0x64: return Os_Keycode_Num_4;
+        case 0x65: return Os_Keycode_Num_5;
+        case 0x66: return Os_Keycode_Num_6;
+        case 0x67: return Os_Keycode_Num_7;
+        case 0x68: return Os_Keycode_Num_8;
+        case 0x69: return Os_Keycode_Num_9;
+        case 0x6F: return Os_Keycode_Num_Slash;
+        case 0x6A: return Os_Keycode_Num_Star;
+        case 0x6D: return Os_Keycode_Num_Minus;
+        case 0x6B: return Os_Keycode_Num_Plus;
+        // TODO(Cody): What the hell is Num enter on stupid windows?
+        case 0x6E: return Os_Keycode_Num_Period;
+        
+        // Utility Keys
+    }
+}
+
+void _win32_default_window_key_callback(Os_Keycode keycode, Os_Key_Action action, Os_Key_Modifiers mods) {
+    
+}
+
 LRESULT CALLBACK _win32_platform_window_callback(HWND hwnd, u32 msg, WPARAM wparam, LPARAM lparam) {
+    Os_Window* window    = (Os_Window*) GetPropA(hwnd, "Os_Window");
+    
     switch(msg) {
         case WM_CLOSE: {
-            Os_Window* window    = (Os_Window*) GetPropA(hwnd, "Os_Window");
-            window->should_close = true;
+            window->data.should_close = true;
+        } break;
+        
+        case WM_KEYDOWN: {
+            _Win32_Keypress_Lparam_Data lparam_data = _win32_breakdown_keypress_lparam(lparam);
+            Os_Keycode os_keycode  = _win32_convert_keycode(wparam);
+            
+            // TODO(Cody): Implement modifiers
+            window->key_callback(os_keycode, Os_Keyaction_Key_Down, Os_Keymods_Undefined);
+        } break;
+        
+        case WM_KEYUP: {
+            Os_Keycode os_keycode  = _win32_convert_keycode(wparam);
+            
+            // TODO(Cody): Implement modifiers
+            window->key_callback(os_keycode, Os_Keyaction_Key_Up, Os_Keymods_Undefined);
+        } break;
+        
+        case WM_SYSKEYDOWN: {
+            
+        } break;
+        
+        case WM_SYSKEYUP: {
+            
         } break;
     }
     
@@ -341,6 +649,8 @@ bool _win32_register_window_class() {
     window_class.cbSize        = sizeof(window_class);
     window_class.cbClsExtra    = 0;
     window_class.cbWndExtra    = 0;
+    // TODO(Cody):              At some point we should probably setup an abstracted flag set
+    //                          that can translate into these for user control
 	window_class.style         = CS_OWNDC | CS_VREDRAW | CS_HREDRAW | CS_GLOBALCLASS;
 	window_class.lpfnWndProc   = _win32_platform_window_callback;
 	window_class.hInstance     = GetModuleHandle(0);
@@ -355,24 +665,19 @@ bool _win32_register_window_class() {
 }
 
 internal bool os_window_create(Os_Window* destination, Os_Window_Configuration* config) {
-    if(!_win32_is_window_class_registered && !_win32_register_window_class()) {
-        printf("Win32 window class registration failed \n");
-        
-        return false;
-    }
+    if(!_win32_is_window_class_registered && !_win32_register_window_class()) return false;
     
     destination->win32_window_handle = CreateWindowA("win32_window_class", config->title, WS_OVERLAPPEDWINDOW,
                                                      CW_USEDEFAULT, CW_USEDEFAULT, config->width, config->height,
                                                      NULL, NULL, GetModuleHandle(0), NULL);
-    if(destination->win32_window_handle == 0) {
-        printf("Win32 window creation failed. \n");
-        
-        return false;
-    }
     
-    destination->width  = config->width;
-    destination->height = config->height;
-    destination->should_close = false;
+    if(destination->win32_window_handle == 0) return false;
+    
+    destination->data.title  = config->title;
+    destination->data.width  = config->width;
+    destination->data.height = config->height;
+    destination->data.should_close = false;
+    destination->key_callback = _win32_default_window_key_callback;
     SetPropA(destination->win32_window_handle, "Os_Window", destination);
     
     return true;
@@ -399,23 +704,40 @@ internal void os_window_poll(Os_Window* window) {
 }
 
 internal bool os_window_should_close(Os_Window* window) {
-    return window->should_close;
+    return window->data.should_close;
 }
 
 internal u32 os_window_get_width(Os_Window* window) {
-    return window->width;
+    return window->data.width;
 }
 
 internal u32 os_window_get_height(Os_Window* window) {
-    return window->height;
+    return window->data.height;
 }
 
 internal void os_window_resize(Os_Window* window, u32 width, u32 height) {
+    RECT window_rect;
+    SetWindowPos(window->win32_window_handle, HWND_TOP, 0, 0, width, height, SWP_NOMOVE);
     
+    window->data.width  = width;
+    window->data.height = height;
+}
+
+internal void os_window_set_position(Os_Window* window, u32 x, u32 y) {
+    SetWindowPos(window->win32_window_handle, HWND_TOP, x, y, x + window->data.width, y + window->data.height, 0);
+}
+
+internal c_string os_window_get_title(Os_Window* window) {
+    return window->data.title;
 }
 
 internal void os_window_set_title(Os_Window* window, c_string title) {
     SetWindowTextA(window->win32_window_handle, title);
+    window->data.title = title;
+}
+
+internal void os_window_set_key_callback(Os_Window* window, Os_Window_Key_Callback callback) {
+    window->key_callback = callback;
 }
 
 internal void* os_window_get_sys_handle(Os_Window* window) {
@@ -424,8 +746,36 @@ internal void* os_window_get_sys_handle(Os_Window* window) {
 
 #elif defined(OS_Osx)
 // ============================================
-// |       Osx Specific Implementations     |
+// |       OSX Specific Implementations     |
 // ============================================
+
+// ***************************
+// *         Cmd Line        *
+// ***************************
+
+// ***************************
+// *          Files          *
+// ***************************
+
+// ***************************
+// *         Libraries       *
+// ***************************
+
+// ***************************
+// *        Processes        *
+// ***************************
+
+// ***************************
+// *         Sockets         *
+// ***************************
+
+// ***************************
+// *         Threads       *
+// ***************************
+
+// ***************************
+// *         Windows         *
+// ***************************
 
 #elif defined(OS_Linux)
 // ============================================
@@ -453,8 +803,118 @@ internal void* os_window_get_sys_handle(Os_Window* window) {
 // ***************************
 
 // ***************************
+// *         Threads       *
+// ***************************
+
+// ***************************
 // *         Windows         *
 // ***************************
+typedef struct Os_Window {
+    Display* x11_display;
+    Window   x11_window;
+    i32      x11_screen_id;
+    
+    Os_Window_Data data;
+    
+    Atom x11_delete_message;
+} Os_Window;
+
+internal bool os_window_create(Os_Window* destination, Os_Window_Configuration* config) {
+    destination->x11_display = XOpenDisplay(NULL);
+    
+    if(destination->x11_display == NULL) return false;
+    
+    destination->x11_screen_id = DefaultScreen(destination->x11_display);
+    destination->x11_window    = XCreateSimpleWindow(destination->x11_display,
+                                                     RootWindow(destination->x11_display, destination->x11_screen_id),
+                                                     10, 10, 320, 200, 1,
+                                                     BlackPixel(destination->x11_display, destination->x11_screen_id),
+                                                     WhitePixel(destination->x11_display, destination->x11_screen_id));
+    XSelectInput(destination->x11_display, destination->x11_window, ExposureMask | KeyPressMask);
+    destination->x11_delete_message = XInternAtom(destination->x11_display, "WM_DELETE_WINDOW", False);
+    XSetWMProtocols(destination->x11_display, destination->x11_window, &destination->x11_delete_message, 1);
+    
+    destination->data.title  = config->title;
+    destination->data.width  = config->width;
+    destination->data.height = config->height;
+    destination->data.should_close = false;
+    
+    os_window_set_title(destination, config->title);
+    os_window_resize(destination, config->width, config->height);
+}
+
+internal void os_window_destroy(Os_Window* window) {
+    XDestroyWindow(window->x11_display, window->x11_window);
+    XCloseDisplay(window->x11_display);
+}
+
+internal void os_window_show(Os_Window* window) {
+    XClearWindow(window->x11_display, window->x11_window);
+    XMapWindow(window->x11_display, window->x11_window);
+}
+
+internal void os_window_hide(Os_Window* window) {
+    
+}
+
+internal void os_window_poll(Os_Window* window) {
+    XEvent e;
+    
+    while(XPending(window->x11_display) > 0) {
+        XNextEvent(window->x11_display, &e);
+        
+        switch(e.type) {
+            case ClientMessage: {
+                if(e.xclient.data.l[0] == window->x11_delete_message) {
+                    window->data.should_close = true;
+                }
+            } break;
+        }
+    }
+}
+
+internal bool os_window_should_close(Os_Window* window) {
+    return window->data.should_close;
+}
+
+internal u32 os_window_get_width(Os_Window* window) {
+    return window->data.width;
+}
+
+internal u32 os_window_get_height(Os_Window* window) {
+    return window->data.height;
+}
+
+internal void os_window_resize(Os_Window* window, u32 width, u32 height) {
+    u32 resize_mask = CWWidth | CWHeight;
+    XWindowChanges resize_values;
+    resize_values.width  = width;
+    resize_values.height = height;
+    XConfigureWindow(window->x11_display, window->x11_window, resize_mask, &resize_values);
+    
+    window->data.width  = width;
+    window->data.height = height;
+}
+
+internal void os_window_set_position(Os_Window* window, u32 x, u32 y) {
+    
+}
+
+internal c_string os_window_get_title(Os_Window* window) {
+    return window->data.title;
+}
+
+internal void os_window_set_title(Os_Window* window, c_string title) {
+    XStoreName(window->x11_display, window->x11_window, title);
+    
+    window->data.title = title;
+}
+
+internal void* os_window_get_sys_handle(Os_Window* window) {
+    return (void*) window->x11_window;
+}
+
+
 
 #elif defined(OS_Android)
 // ============================================
@@ -482,10 +942,19 @@ internal void* os_window_get_sys_handle(Os_Window* window) {
 // ***************************
 
 // ***************************
+// *         Threads       *
+// ***************************
+
+// ***************************
 // *         Windows         *
 // ***************************
 
+
 #elif defined(OS_Ios)
+// ============================================
+// |     IOS Specific Implementations         |
+// ============================================
+
 // ***************************
 // *         Cmd Line        *
 // ***************************
@@ -504,6 +973,10 @@ internal void* os_window_get_sys_handle(Os_Window* window) {
 
 // ***************************
 // *         Sockets         *
+// ***************************
+
+// ***************************
+// *         Threads       *
 // ***************************
 
 // ***************************
